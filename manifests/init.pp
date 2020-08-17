@@ -104,6 +104,7 @@ class yum (
   Array[String] $repo_exclusions = [],
   Hash[String, Hash[String, String]] $gpgkeys = {},
   String $utils_package_name = 'yum-utils',
+  Boolean $purge_unmanaged_repos = false,
 ) {
   $module_metadata            = load_module_metadata($module_name)
   $supported_operatingsystems = $module_metadata['operatingsystem_support']
@@ -146,6 +147,14 @@ class yum (
       }
     }
   }
+  
+  file { '/etc/yum.repos.d':
+    ensure        => directory,
+    purge         => $purge_unmanaged_repos,
+    recurse       => true,
+    recurselimit  => 1
+    ignore        => suffix($_managed_repos_minus_exclusions, '.repo'),
+  
 
   unless empty($config_options) {
     if ('installonly_limit' in $config_options) {
